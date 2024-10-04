@@ -1,0 +1,4 @@
+mongo user mongo pass
+elekwachi SDDzZtBcz9tJGhNe
+
+CONNECTION_STRING='mongodb+srv://elekwachi:SDDzZtBcz9tJGhNe@cluster0.ghmo5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
