@@ -15,19 +15,19 @@ def init_cluster(app, mongo_instance):
     mongo = mongo_instance
 #find all clusters around
 @cluster_routes.route("/clusters", methods=["GET"])
-@jwt_required()
 def get_clusters():
     clusters = mongo.db.clusters.find()
     return dumps(clusters), 200
 
 # create a cluster clusters
 @cluster_routes.route("/clusters", methods=["POST"])
-@jwt_required()
 def create_cluster():
     cluster = request.json
-    cluster["creator"] = get_jwt_identity()
-    cluster["members"] = [get_jwt_identity()]  # Creator is automatically a member
+    cluster["creator"] = request.json.get("creator", "test_user")
+    cluster["description"] = request.json.get("description", "text" )
+    cluster["members"] = cluster["creator"]  # Creator is automatically a member
     cluster_id = mongo.db.clusters.insert_one(cluster).inserted_id
+    saved_cluster = mongo.db.clusters.insert_many(cluster)
     return jsonify({"msg": "Cluster created successfully", "id": str(cluster_id)}), 201
 
 @cluster_routes.route("/clusters/<cluster_id>", methods=["GET"])
