@@ -9,49 +9,23 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Users } from "lucide-react"
 
 // Mock data for clusters
-const mockClusters = [
-  {
-    id: 1,
-    name: "Fitness Fanatics",
-    description: "A group dedicated to daily workouts and healthy living.",
-    members: 156,
-    activity: "high",
-    expiryTime: "2024-12-31",
-  },
-  {
-    id: 2,
-    name: "Mindful Meditators",
-    description: "Practice mindfulness and meditation techniques together.",
-    members: 89,
-    activity: "moderate",
-    expiryTime: "2024-10-15",
-  },
-  {
-    id: 3,
-    name: "Bookworm Society",
-    description: "Read and discuss a new book every month.",
-    members: 42,
-    activity: "low",
-    expiryTime: "2024-11-30",
-  },
-  // Add more mock clusters as needed
-]
 
-type Cluster = {
-  id: number
-  name: string
-  description: string
-  members: number
-  activity: "high" | "moderate" | "low"
-  expiryTime: string
-}
+const trueClusters = () => {
+  fetch("http://localhost:8080/cluster")
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok " + response.statusText);
+    }
+    return response.json();
+  })
+
 
 export default function ClusterPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResults, setSearchResults] = useState<Cluster[]>([])
 
   const handleSearch = () => {
-    const results = mockClusters.filter(
+    const results = trueClusters.filter(
       (cluster) =>
         cluster.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         cluster.description.toLowerCase().includes(searchTerm.toLowerCase())

@@ -4,11 +4,20 @@ from flask_pymongo import PyMongo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from bson.objectid import ObjectId
 from bson.json_util import dumps
+from cerberus import Validator
 
 cluster_routes = Blueprint('cluster_routes', __name__)
 
 # This will be initialized in the main app
 mongo = None
+
+cluster_schema = {
+    "name" : {"type":"string"},
+    "description" : {"type" : "string"},
+    "members" : {"type" : "string"},
+    "creator" : {'type' :"string" },
+    "expires" : {"type" : "string"}
+    }
 
 def init_cluster(app, mongo_instance):
     global mongo
@@ -22,12 +31,19 @@ def get_clusters():
 # create a cluster clusters
 @cluster_routes.route("/clusters", methods=["POST"])
 def create_cluster():
+    v = Validator(cluster_schema)
     cluster = request.json
-    cluster["creator"] = request.json.get("creator", "test_user")
-    cluster["description"] = request.json.get("description", "text" )
+
+    if not v.validate(cluster):
+        return jsonify({"error" : "Invalid Input", "errors":v.errors})
+
+
+    cluster["creator"] = cluster.get("creator", "test_user")
+    cluster["description"]= cluster.get("description","text" )
     cluster["members"] = cluster["creator"]  # Creator is automatically a member
+    cluster["name"] = cluster.get("name", "ACME-clster")
+    cluster["expires"] =  cluster.get("expires", "soon")
     cluster_id = mongo.db.clusters.insert_one(cluster).inserted_id
-    saved_cluster = mongo.db.clusters.insert_many(cluster)
     return jsonify({"msg": "Cluster created successfully", "id": str(cluster_id)}), 201
 
 @cluster_routes.route("/clusters/<cluster_id>", methods=["GET"])

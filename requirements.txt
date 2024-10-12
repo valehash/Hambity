@@ -1,6 +1,8 @@
 Flask
 Flask-PyMongo
+flask-cors
 Flask-JWT-Extended
+cerberus
 pymongo
 Werkzeug
 python-dotenv

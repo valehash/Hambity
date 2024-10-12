@@ -1,13 +1,14 @@
 # Creting the flask app
 from flask import Flask
 from flask_pymongo import PyMongo
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import os
 from config import MongoConfig
 from cluster import cluster_routes, init_cluster
 
 app = Flask(__name__)
-
+CORS(app)
 app.config.from_object(MongoConfig)
 
 db = MongoConfig.get_database()
@@ -30,4 +31,4 @@ init_cluster(app, db)
 app.register_blueprint(cluster_routes)
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(debug=True, port=8080)
