@@ -15,6 +15,10 @@ export default function LandingPage() {
   const handleGetStarted = () => { 
     router.push('/cluster')
   }
+
+  const handleSignUp = () => {
+    router.push('/signup')
+  }
   useEffect(() => {
     const smoothScroll = (e: Event) => {
       e.preventDefault()
