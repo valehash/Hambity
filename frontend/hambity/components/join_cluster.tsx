@@ -1,4 +1,3 @@
-import Link from 'next/link'
 "use client"
 
 import { useState, useEffect } from "react"
@@ -8,56 +7,74 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import { Search, Users } from "lucide-react"
 
-// Function to fetch clusters from the backend
-const fetchClusters = async () => {
-  try {
-    const response = await fetch("http://localhost:8080/cluster");
-    if (!response.ok) {
-      throw new Error("Network response was not ok " + response.statusText);
-    }
-    const data = await response.json();
-    return data;  // Ensure this returns the fetched data
-  } catch (error) {
-    console.error("Error fetching clusters:", error);
-    return [];
-  }
+type Cluster = {
+  _id: { $oid: string }
+  creator: string
+  name: string
+  description: string
+  members: string
+  expires: string
 }
 
 export default function ClusterPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [clusters, setClusters] = useState<Cluster[]>([])  // Store fetched clusters
+  const [clusters, setClusters] = useState<Cluster[]>([])
   const [searchResults, setSearchResults] = useState<Cluster[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Fetch clusters on initial load
   useEffect(() => {
-    const loadClusters = async () => {
-      const fetchedClusters = await fetchClusters();
-      setClusters(fetchedClusters);  // Set fetched clusters
-      setSearchResults(fetchedClusters);  // Initialize with all clusters
-    };
-    loadClusters();
-  }, []);
+    fetchClusters()
+  }, [])
+
+  const fetchClusters = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('http://localhost:8080/clusters')
+      if (!response.ok) {
+        throw new Error('Failed to fetch clusters')
+      }
+      const data = await response.json()
+      setClusters(data)
+      setSearchResults(data)
+    } catch (err) {
+      setError('An error occurred while fetching clusters. Please try again later.')
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSearch = () => {
     const results = clusters.filter(
       (cluster) =>
       cluster.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cluster.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setSearchResults(results);
+    )
+    setSearchResults(results)
   }
 
-  const getActivityColor = (activity: string) => {
-    switch (activity) {
-      case "high":
-        return "bg-green-500"
-      case "moderate":
-        return "bg-yellow-500"
-      case "low":
+  const getActivityColor = (members: string) => {
+    const memberCount = members.split(',').length
+    if (memberCount > 10) return "bg-green-500"
+      if (memberCount > 5) return "bg-yellow-500"
         return "bg-red-500"
-      default:
-        return "bg-gray-500"
-    }
+  }
+
+  const getActivityLevel = (members: string) => {
+    const memberCount = members.split(',').length
+    if (memberCount > 10) return "high"
+      if (memberCount > 5) return "moderate"
+        return "low"
+  }
+
+  if (isLoading) {
+    return <div className="container mx-auto px-4 py-8 text-center">Loading clusters...</div>
+  }
+
+  if (error) {
+    return <div className="container mx-auto px-4 py-8 text-center text-red-600">{error}</div>
   }
 
   return (
@@ -77,7 +94,7 @@ export default function ClusterPage() {
     </div>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {searchResults.map((cluster) => (
-      <Card key={cluster.id} className="flex flex-col">
+      <Card key={cluster._id.$oid} className="flex flex-col">
       <CardHeader>
       <CardTitle className="text-xl font-bold text-orange-600">{cluster.name}</CardTitle>
       </CardHeader>
@@ -85,15 +102,15 @@ export default function ClusterPage() {
       <p className="text-gray-600 dark:text-gray-300 mb-4">{cluster.description}</p>
       <div className="flex items-center text-gray-500 dark:text-gray-400">
       <Users className="mr-2 h-4 w-4" />
-      <span>{cluster.members} members</span>
+      <span>{cluster.members.split(',').length} members</span>
       </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
-      <Badge className={`${getActivityColor(cluster.activity)} text-white`}>
-      {cluster.activity} activity
+      <Badge variant="secondary" className={getActivityColor(cluster.members)}>
+      {getActivityLevel(cluster.members)} activity
       </Badge>
       <span className="text-sm text-gray-500 dark:text-gray-400">
-      Expires: {new Date(cluster.expiryTime).toLocaleDateString()}
+      Expires: {new Date(cluster.expires).toLocaleDateString()}
       </span>
       </CardFooter>
       </Card>
