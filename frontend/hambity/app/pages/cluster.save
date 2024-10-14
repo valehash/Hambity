@@ -1,3 +1,0 @@
-export default iifunction Cluster_Page(){
-  return <ClusterPage />
-}
