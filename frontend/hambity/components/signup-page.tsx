@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,13 +11,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle } from "lucide-react"
 
 export default function SignUpPage() {
-    const [name, setName] = useState("")
+    const [username, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
+    const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const emailParam = searchParams.get('email')
+        if (emailParam) {
+            setEmail(emailParam)
+        }
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -31,13 +39,13 @@ export default function SignUpPage() {
         }
 
         try {
-            const response = await fetch('/api/signup', {
+            const response = await fetch('http://localhost:8080/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name,
+                    username,
                     email,
                     password,
                 }),
@@ -71,18 +79,18 @@ export default function SignUpPage() {
         <CardContent>
         <form onSubmit={handleSubmit}>
         <div className="space-y-4">
-        <div>
-        <Label htmlFor="name">Name</Label>
+        <div className="space-y-2">
+        <Label htmlFor="name">Username</Label>
         <Input
         id="name"
         type="text"
         placeholder="Enter your name"
-        value={name}
+        value={username}
         onChange={(e) => setName(e.target.value)}
         required
         />
         </div>
-        <div>
+        <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
         id="email"
@@ -93,7 +101,7 @@ export default function SignUpPage() {
         required
         />
         </div>
-        <div>
+        <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <Input
         id="password"
@@ -104,7 +112,7 @@ export default function SignUpPage() {
         required
         />
         </div>
-        <div>
+        <div className="space-y-2">
         <Label htmlFor="confirm-password">Confirm Password</Label>
         <Input
         id="confirm-password"

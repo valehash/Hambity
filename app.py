@@ -6,7 +6,7 @@ from flask_jwt_extended import JWTManager
 import os
 from config import MongoConfig
 from cluster import cluster_routes, init_cluster
-
+from users import user_routes, init_user_routes
 app = Flask(__name__)
 CORS(app)
 app.config.from_object(MongoConfig)
@@ -29,6 +29,9 @@ for collection in collections_to_create:
 #Cluster code
 init_cluster(app, db)
 app.register_blueprint(cluster_routes)
+#Usercode
 
+init_user_routes(app, db)
+app.register_blueprint(user_routes)
 if __name__ == "__main__":
 	app.run(debug=True, port=8080)
