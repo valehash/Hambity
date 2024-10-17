@@ -2,242 +2,215 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Progress } from "@/components/ui/progress"
+import { Textarea } from "@/components/ui/textarea"
+import { Menu, X, Plus, CheckCircle } from "lucide-react"
 
-// Mock data (replace with API calls in production)
-const mockClusters = [
-    {
-        id: 1,
-        name: "Fitness Fanatics",
-        tasks: [
-            { id: 1, description: "30 minutes cardio", completed: false },
-            { id: 2, description: "Strength training", completed: true },
-        ]
-    },
-    {
-        id: 2,
-        name: "Bookworm Society",
-        tasks: [
-            { id: 1, description: "Read 30 pages", completed: false },
-            { id: 2, description: "Write book review", completed: false },
-        ]
-    },
-    {
-        id: 3,
-        name: "Coding Ninjas",
-        tasks: [
-            { id: 1, description: "Solve 2 coding challenges", completed: true },
-            { id: 2, description: "Work on personal project", completed: false },
-        ]
-    },
-]
+interface Cluster {
+    id: number;
+    name: string;
+}
 
-const mockWeeklyTasks = [
-    { day: 'Mon', tasks: 4 },
-    { day: 'Tue', tasks: 3 },
-    { day: 'Wed', tasks: 5 },
-    { day: 'Thu', tasks: 2 },
-    { day: 'Fri', tasks: 4 },
-    { day: 'Sat', tasks: 6 },
-    { day: 'Sun', tasks: 3 },
-]
-
-const mockWeeklyGoals = [
-    { id: 1, description: "Run 5km three times", cluster: "Fitness Fanatics" },
-    { id: 2, description: "Read 2 chapters of 'Clean Code'", cluster: "Bookworm Society" },
-    { id: 3, description: "Complete 3 LeetCode challenges", cluster: "Coding Ninjas" },
-]
-
-const mockDailyRoutine = [
-    { id: 1, task: "Morning meditation", completed: false },
-    { id: 2, task: "30 minutes of exercise", completed: false },
-    { id: 3, task: "Read for 1 hour", completed: false },
-    { id: 4, task: "Code for 2 hours", completed: false },
-]
-
-const mockClusterChallenges = [
-    { id: 1, description: "7-day workout streak", cluster: "Fitness Fanatics" },
-    { id: 2, description: "Read 3 books this month", cluster: "Bookworm Society" },
-    { id: 3, description: "Build a full-stack app", cluster: "Coding Ninjas" },
-]
+interface Goal {
+    id: number;
+    text: string;
+    completed: boolean;
+}
 
 export default function UserPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [newTask, setNewTask] = useState("")
+    const [tasks, setTasks] = useState([
+        { id: 1, text: "Morning meditation", completed: false },
+        { id: 2, text: "30 minutes exercise", completed: false },
+        { id: 3, text: "Read 20 pages", completed: false },
+    ])
     const [notes, setNotes] = useState("")
-    const [dailyRoutine, setDailyRoutine] = useState(mockDailyRoutine)
-    const [selectedCluster, setSelectedCluster] = useState<number | null>(null)
     const sidebarRef = useRef<HTMLDivElement>(null)
 
-    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+    const [clusters, setClusters] = useState<Cluster[]>([
+        { id: 1, name: "Fitness Enthusiasts" },
+        { id: 2, name: "Book Club" },
+        { id: 3, name: "Productivity Hackers" },
+    ])
 
-    const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setNotes(e.target.value)
-    }
-
-    const handleRoutineToggle = (id: number) => {
-        setDailyRoutine(dailyRoutine.map(item =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-        ))
-    }
-
-    const handleClusterClick = (clusterId: number) => {
-        setSelectedCluster(selectedCluster === clusterId ? null : clusterId)
-    }
+    const [goals, setGoals] = useState<Goal[]>([
+        { id: 1, text: "Run 5km", completed: true },
+        { id: 2, text: "Read 2 chapters", completed: false },
+        { id: 3, text: "Meditate for 10 minutes", completed: true },
+        { id: 4, text: "Write 500 words", completed: false },
+    ])
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
+        function handleClickOutside(event: MouseEvent) {
             if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
                 setIsSidebarOpen(false)
             }
         }
 
-        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener("mousedown", handleClickOutside)
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside)
+            document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [])
+
+    const handleAddTask = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (newTask.trim()) {
+            setTasks([...tasks, { id: Date.now(), text: newTask, completed: false }])
+            setNewTask("")
+        }
+    }
+
+    const toggleTaskCompletion = (id: number) => {
+        setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+        ))
+    }
+
+    const completedGoals = goals.filter(goal => goal.completed).length
+    const totalGoals = goals.length
+    const weeklyProgress = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0
 
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
         {/* Sidebar */}
         <div
         ref={sidebarRef}
-        className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-orange-600 text-white transform ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}
         >
-        <div className="p-6">
-        <h2 className="text-2xl font-semibold text-orange-600 mb-6">Your Clusters</h2>
-        <ul>
-        {mockClusters.map(cluster => (
-            <li key={cluster.id} className="mb-2">
-            <Button
-            variant="ghost"
-            className="w-full justify-start text-left"
-            onClick={() => handleClusterClick(cluster.id)}
-            >
-            {cluster.name}
-            </Button>
-            {selectedCluster === cluster.id && (
-                <ul className="ml-4 mt-2">
-                {cluster.tasks.map(task => (
-                    <li key={task.id} className="flex items-center mb-1">
-                    <span className={`mr-2 ${task.completed ? 'text-green-500' : 'text-gray-500'}`}>
-                    {task.completed ? '✓' : '○'}
-                    </span>
-                    {task.description}
-                    </li>
-                ))}
-                </ul>
-            )}
-            </li>
-        ))}
-        </ul>
-        </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-        <div className="p-6">
-        <Button className="lg:hidden mb-4" onClick={toggleSidebar}>
-        {isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+        <div className="flex justify-between items-center p-4">
+        <h2 className="text-2xl font-bold">HabitCluster</h2>
+        <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsSidebarOpen(false)}
+        className="lg:hidden text-white"
+        >
+        <X className="h-6 w-6" />
         </Button>
+        </div>
+        <nav className="mt-8">
+        <h3 className="px-4 mb-2 text-lg font-semibold">My Clusters</h3>
+        {clusters.map((cluster) => (
+            <a key={cluster.id} href="#" className="block py-2 px-4 hover:bg-orange-700">
+            {cluster.name}
+            </a>
+        ))}
+        <h3 className="px-4 mt-6 mb-2 text-lg font-semibold">User Statistics</h3>
+        <div className="px-4">
+        <p>Total Habits: 15</p>
+        <p>Completed Today: 5</p>
+        <p>Streak: 7 days</p>
+        </div>
+        <h3 className="px-4 mt-6 mb-2 text-lg font-semibold">Weekly Goals</h3>
+        <div className="px-4">
+        <p>Progress: {completedGoals}/{totalGoals}</p>
+        <Progress value={weeklyProgress} className="mt-2" />
+        </div>
+        </nav>
+        </div>
 
-        <h1 className="text-3xl font-bold text-orange-600 mb-6">Welcome, User!</h1>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="flex justify-between items-center p-4 bg-white dark:bg-gray-800 shadow">
+        <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsSidebarOpen(true)}
+        className="lg:hidden"
+        >
+        <Menu className="h-6 w-6" />
+        </Button>
+        <h1 className="text-2xl font-bold text-orange-600">Dashboard</h1>
+        <Button variant="ghost" size="sm">Logout</Button>
+        </header>
 
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Statistics */}
-        <Card>
-        <CardHeader>
-        <CardTitle>Weekly Task Completion</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <div className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={mockWeeklyTasks} layout="vertical">
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis type="number" />
-        <YAxis dataKey="day" type="category" />
-        <Tooltip />
-        <Bar dataKey="tasks" fill="#f97316" /> {/* Orange color */}
-        </BarChart>
-        </ResponsiveContainer>
-        </div>
-        </CardContent>
-        </Card>
-
         {/* Weekly Goals */}
-        <Card>
-        <CardHeader>
-        <CardTitle>Weekly Goals</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <ul>
-        {mockWeeklyGoals.map(goal => (
-            <li key={goal.id} className="mb-2">
-            <span className="font-semibold text-orange-600">{goal.cluster}:</span> {goal.description}
-            </li>
-        ))}
-        </ul>
-        </CardContent>
-        </Card>
-
-        {/* Cluster Challenges */}
-        <Card>
-        <CardHeader>
-        <CardTitle>Cluster Challenges</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <ul>
-        {mockClusterChallenges.map(challenge => (
-            <li key={challenge.id} className="mb-2">
-            <span className="font-semibold text-orange-600">{challenge.cluster}:</span> {challenge.description}
-            </li>
-        ))}
-        </ul>
-        </CardContent>
-        </Card>
-
-        {/* Notes Section */}
-        <Card>
-        <CardHeader>
-        <CardTitle>Notes</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <Textarea
-        placeholder="Write your notes here..."
-        value={notes}
-        onChange={handleNotesChange}
-        className="w-full h-32"
-        />
-        </CardContent>
-        </Card>
-        </div>
-
-        {/* Daily Routine */}
-        <Card className="mt-6">
-        <CardHeader>
-        <CardTitle>Daily Routine</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {dailyRoutine.map(item => (
-            <div key={item.id} className="flex items-center space-x-2">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h2 className="text-xl font-bold mb-4 text-orange-600">Weekly Goals</h2>
+        <div className="space-y-2">
+        {goals.map((goal) => (
+            <div key={goal.id} className="flex items-center">
             <Checkbox
-            id={`routine-${item.id}`}
-            checked={item.completed}
-            onCheckedChange={() => handleRoutineToggle(item.id)}
+            id={`goal-${goal.id}`}
+            checked={goal.completed}
+            onCheckedChange={() => {
+                setGoals(goals.map(g =>
+                g.id === goal.id ? { ...g, completed: !g.completed } : g
+                ))
+            }}
             />
-            <Label htmlFor={`routine-${item.id}`}>{item.task}</Label>
+            <label
+            htmlFor={`goal-${goal.id}`}
+            className={`ml-2 ${goal.completed ? 'line-through text-gray-500' : ''}`}
+            >
+            {goal.text}
+            </label>
             </div>
         ))}
         </div>
-        </CardContent>
-        </Card>
+        <div className="mt-4">
+        <p>Overall Progress:</p>
+        <Progress value={weeklyProgress} className="mt-2" />
         </div>
+        </div>
+
+        {/* Notes */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h2 className="text-xl font-bold mb-4 text-orange-600">Notes</h2>
+        <Textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Write your notes here..."
+        className="w-full h-32 p-2 border rounded"
+        />
+        </div>
+        </div>
+
+        {/* Daily Routine Checklist */}
+        <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+        <h2 className="text-xl font-bold mb-4 text-orange-600">Daily Routine</h2>
+        <form onSubmit={handleAddTask} className="flex mb-4">
+        <Input
+        type="text"
+        value={newTask}
+        onChange={(e) => setNewTask(e.target.value)}
+        placeholder="Add a new task"
+        className="flex-grow mr-2"
+        />
+        <Button type="submit">
+        <Plus className="h-4 w-4 mr-2" />
+        Add Task
+        </Button>
+        </form>
+        <div className="space-y-2">
+        {tasks.map((task) => (
+            <div key={task.id} className="flex items-center">
+            <Checkbox
+            id={`task-${task.id}`}
+            checked={task.completed}
+            onCheckedChange={() => toggleTaskCompletion(task.id)}
+            />
+            <label
+            htmlFor={`task-${task.id}`}
+            className={`ml-2 ${task.completed ? 'line-through text-gray-500' : ''}`}
+            >
+            {task.text}
+            </label>
+            </div>
+        ))}
+        </div>
+        </div>
+        </div>
+        </main>
         </div>
         </div>
     )
