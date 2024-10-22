@@ -43,11 +43,10 @@ as studies have shown maintaining habits is easier when done with a friend, but 
  - To start the backend server make sure you are in the root directory
    `python app.py`
  - To start the frontend server go to the frontend/hambity directory
-   `npm run dev`
+   npm run dev`
 
 
 #ENVIROMENT VARIABLES
 make sure you have your enviroment varaibles set up for the backend
- `CONNECTTION_STRING =
-  DB_NAME = 
-`
+ `CONNECTTION_STRING =`
+` DB_NAME = `
