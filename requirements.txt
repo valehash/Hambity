@@ -6,3 +6,6 @@ cerberus
 pymongo
 Werkzeug
 python-dotenv
+flask-socketio
+python-socketio
+eventlet
