@@ -24,14 +24,19 @@ for collection in collections_to_create:
             print(f"Failed to create collection: {collection}")
     else:
         print(f"Collection {collection} already exists.")
-
-
 #Cluster code
 init_cluster(app, db)
 app.register_blueprint(cluster_routes)
 #Usercode
-
 init_user_routes(app, db)
 app.register_blueprint(user_routes)
+
+init_cluster(app, db)
+init_user_routes(app, db)
+#chatcode
+init_chat(app, db)
+app.register_blueprint(chat_routes)
+#websickets oh GOD help me
+init_socketio(socketio, db)
 if __name__ == "__main__":
 	app.run(debug=True, port=8080)
