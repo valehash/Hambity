@@ -9,3 +9,4 @@ python-dotenv
 flask-socketio
 python-socketio
 eventlet
+pip install "PyJWT==1.7.1"

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """script to house all the user functionality without authentication"""
-
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
 from bson.json_util import dumps
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 
 # This will be initialized in the main app
 user_routes = Blueprint('user_routes', __name__)
@@ -41,9 +41,14 @@ def login():
     username = request.json.get("username")
     password = request.json.get("password")
     user = mongo.db.users.find_one({"username": username})
-
+    
     if user and check_password_hash(user["password"], password):
-        return jsonify({"msg": "Login successful", "id": str(user["_id"])}), 200
+        access_token = create_access_token(identity=str(user["_id"]))
+        return jsonify({
+            "msg": "Login successful", 
+            "id": str(user["_id"]), 
+            "token": str(access_token)
+        }), 200
 
     return jsonify({"msg": "Invalid username or password"}), 401
 
